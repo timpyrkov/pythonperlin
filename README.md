@@ -1,2 +1,2 @@
 # pyperlin
-Perlin noise in python for any dimensions
+Perlin noise in python for seamless tile any dimensions
