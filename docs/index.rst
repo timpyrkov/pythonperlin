@@ -1,0 +1,29 @@
+.. pythonperlin documentation master file, created by
+   sphinx-quickstart on Fri Mar 18 23:10:45 2022.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
+
+PythonPerlin
+============
+
+Python implementation of Perlin noise - to seamlessly tile in any dimensions
+
+
+Installation
+------------
+
+::
+
+   pip install pytonperlin
+
+
+
+Quick start
+-----------
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Examples
+
+   notebook/example
+
