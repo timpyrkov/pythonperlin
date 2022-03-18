@@ -14,7 +14,7 @@ Installation
 
 ::
 
-   pip install pytonperlin
+   pip install pythonperlin
 
 
 
