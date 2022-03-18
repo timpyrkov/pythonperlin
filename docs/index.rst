@@ -21,6 +21,17 @@ Installation
 Quick start
 -----------
 
+::
+
+   import pylab as plt
+   from pythonperlin import perlin
+
+   dens = 32
+   shape = (8,8)
+   x = perlin(shape, dens=dens)
+   plt.imshow(x, cmap=plt.get_cmap('viridis'))
+
+
 .. toctree::
    :maxdepth: 2
    :caption: Examples
