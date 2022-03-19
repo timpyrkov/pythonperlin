@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath('.'))
 # -- Project information -----------------------------------------------------
 
 project = 'pythonperlin'
-copyright = '2022, Tim pyrkov'
+copyright = '2022, Tim Pyrkov'
 author = 'Tim Pyrkov'
 
 # The full version, including alpha/beta/rc tags
