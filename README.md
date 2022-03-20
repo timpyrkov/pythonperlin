@@ -167,7 +167,7 @@ import sounddevice as sd
 
 dens = 32
 shape = (1024,)
-x = perlin(shape, dens=dens, octaves=0)
+x = perlin(shape, dens=dens)
 
 sd.play(x)
 ```
