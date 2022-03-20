@@ -7,7 +7,7 @@ def read(fname):
 
 setup(
     name="pythonperlin",
-    version="0.0.1",
+    version="0.0.2",
     author="Tim Pyrkov",
     author_email="tim.pyrkov@gmail.com",
     description="Perlin noise in python - seamlessly tile in any dimensions",
@@ -19,9 +19,9 @@ setup(
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
-        "Topic :: Scientific/Engineering",
+        "Topic :: Artistic Software",
     ],
-    python_requires=">=3.9",
+    python_requires=">=3.6",
     include_package_data=True,
     install_requires=[
         "numpy", 

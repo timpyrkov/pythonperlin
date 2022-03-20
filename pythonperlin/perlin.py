@@ -3,6 +3,7 @@
 
 import numpy as np
 import itertools
+import pyutils
 
 
 def smoothstep(x):
@@ -32,8 +33,6 @@ def make_grads(*shape, seed=None):
     ----------
     *shape
         Integers or tuple of integers
-    seed : int, default None
-        Numpy random seed
 
     Returns
     -------
@@ -70,11 +69,11 @@ def make_grid(*shape, dens=1, offset=True):
     Returns
     -------
     grid : ndarray
-        Minor grid float coordinates
+        Grid float coordinates
 
     """
     shape = tuple(shape[0]) if isinstance(shape[0], (tuple, list)) else shape
-    grid = [np.linspace(0, s, s * dens + 1)[:-1].astype(np.float16) for s in shape]
+    grid = [np.linspace(0, s, s * dens + 1)[:-1] for s in shape]
     if offset:
         grid = [g + 0.5 * g[1] for g in grid]
     grid = list(itertools.product(*grid))
@@ -202,11 +201,48 @@ def calc_grid(grid, grads, smooth=smoothstep):
             new_noise.append(d * fade)
         for i in range(len(new_noise))[::2]:
             noise.append(new_noise[i] + new_noise[i + 1])
-    noise = noise[0]
+    noise = noise[0].astype(float)
     return noise
 
 
-def perlin(*shape, dens=1, seed=None, octaves=0, smooth=smoothstep):
+def domain_warping(*shape, grid=None, seed=0, smooth=smoothstep):
+    """
+    Apply domain warping to grid
+
+    Parameters
+    ----------
+    *shape
+        Integers or tuple of integers
+    grid : ndarray
+        Grid float coordinates
+    seed : int, default None
+        Numpy random seed
+    smooth : {smoothstep, smootherstep, None}, default smoothstep
+        Smooth function or None
+
+    Returns
+    -------
+    grid : ndarray
+        Grid float coordinates
+
+    """
+    nnode, ndim = grid.shape
+    vmax = np.max(grid, axis=0)
+    for i in range(ndim):
+        grads = make_grads(*shape, seed=seed)
+        warp = calc_grid(grid, grads, smooth=smooth)
+        x = grid[:,i]
+        vmax = int(x.max()) + 1
+        x = x + warp
+        mask = x < 0
+        x[mask] = x[mask] + vmax
+        mask = x >= vmax
+        x[mask] = x[mask] - vmax
+        grid[:,i] = x
+    return grid
+
+
+def perlin(*shape, dens=1, seed=None, octaves=0, warp=False, smooth=smoothstep):
     """
     Generate Perlin noise
     
@@ -215,11 +251,13 @@ def perlin(*shape, dens=1, seed=None, octaves=0, smooth=smoothstep):
     *shape
         Integers or tuple of integers
     dens : int, default 1 (white noise)
-        Number of points between each two gradients along one dimension
+        Number of points between each two gradients along an axis
     seed : int, default None
         Numpy random seed
     octaves : int, default 0
         Number of additional octaves
+    warp : bool, default False
+        If True, apply domain warping
     smooth : {smoothstep, smootherstep, None}, default smoothstep
         Smooth function or None
 
@@ -238,13 +276,15 @@ def perlin(*shape, dens=1, seed=None, octaves=0, smooth=smoothstep):
     shape = tuple(shape[0]) if isinstance(shape[0], (tuple, list)) else shape
     noise_shape = tuple(dens * s for s in shape)
     grid = make_grid(*shape, dens=dens)
+    if warp:
+        grid = domain_warping(*shape, grid=grid, seed=seed, smooth=smooth)
     grads = make_grads(*shape, seed=seed)
-    noise = calc_grid(grid, grads, smooth=smoothstep)
+    noise = calc_grid(grid, grads, smooth=smooth)
     for i in range(octaves):
         grid = 2 * grid
         shape = tuple(2 * s for s in shape)
         grads = make_grads(*shape, seed=seed)
-        noise += 0.5 * calc_grid(grid, grads, smooth=smoothstep)
+        noise += 0.5 * calc_grid(grid, grads, smooth=smooth)
     noise = noise.reshape(noise_shape)
     return noise
 
