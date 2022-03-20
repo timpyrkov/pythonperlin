@@ -12,7 +12,44 @@
 pip install pythonperlin
 ```
 
-# Generate Perlin noise with octaves
+# Generate Perlin noise
+```
+import pylab as plt
+from pythonperlin import perlin
+
+# Set grid shape for randomly seeded gradients
+shape = (4,4)
+
+# Set density - output shape will be dens * shape = (128,128)
+dens = 32
+
+# Generate noise
+x = perlin(shape, dens=dens, seed=0)
+
+# Test that noise tiles seamlessly
+x = np.concatenate([x] * 2, axis=1)
+
+plt.figure(figsize=(12,6))
+plt.imshow(x, cmap=plt.get_cmap('prism'))
+plt.axis('off')
+plt.show()
+```
+![](media/img_tile.png)
+
+# Add domain warping
+```
+dens = 32
+shape = (4,4)
+x = perlin(shape, dens=dens, seed=0, warp=True)
+
+plt.figure(figsize=(6,6))
+plt.imshow(x, cmap=plt.get_cmap('prism'))
+plt.axis('off')
+plt.show()
+```
+![](media/img_warp.png)
+
+# Add more octaves
 ```
 import pylab as plt
 from pythonperlin import perlin
@@ -39,7 +76,7 @@ plt.imshow(x, cmap=plt.get_cmap('viridis'))
 plt.axis('off')
 plt.show()
 ```
-![](img/img_no_octaves.png) ![](img/img_with_octaves.png)
+![](media/img_no_octaves.png) ![](media/img_with_octaves.png)
 
 # Generate water caustics
 ```
@@ -63,7 +100,7 @@ plt.imshow(x, cmap=cmap)
 plt.axis('off')
 plt.show()
 ```
-![](img/img_caustics.png)
+![](media/img_caustics.png)
 
 # Generate flower petals
 ```
@@ -87,7 +124,7 @@ for i in range(n):
 plt.axis('off')
 plt.show()
 ```
-![](img/img_flower.png)
+![](media/img_flower.png)
 
 # Generate vector field
 ```
@@ -106,7 +143,22 @@ for i in range(shape[0]):
 plt.axis('off')
 plt.show()
 ```
-![](img/img_vectors.png)
+![](media/img_vectors.png)
+
+# Sound of Perlin noise
+```
+import IPython
+import soundfile as sf
+
+dens = 32
+shape = (1024,)
+x = perlin(shape, dens=dens, octaves=0)
+
+sf.write('perlin.wav', x, 22050)
+IPython.display.Audio('perlin.wav')
+```
+![perlin.wav](media/perlin.wav)
+
 # Documentation
 
 [https://pythonperlin.readthedocs.io](https://pythonperlin.readthedocs.io)
