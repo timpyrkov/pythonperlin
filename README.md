@@ -4,8 +4,9 @@
 [![Documentation Status](https://readthedocs.org/projects/pythonperlin/badge/?version=latest)](https://pythonperlin.readthedocs.io/en/latest/?badge=latest)
 
 # PythonPerlin
-## Perlin noise in python - seamlessly tile in any dimensions
+## Perlin noise in python -- generative art texture to seamlessly tile in any dimensions
 #
+
 
 # Installation
 ```
