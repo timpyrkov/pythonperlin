@@ -169,7 +169,7 @@ dens = 32
 shape = (1024,)
 x = perlin(shape, dens=dens)
 
-sd.play(x)
+sd.play(x, 22050)
 ```
 
 Alternatively, save and play `perlin.wav` audio
