@@ -36,7 +36,10 @@ plt.show()
 ```
 ![](media/img_tile.png)
 
-# Add domain warping
+
+# Generate domain warping
+
+Add noise to grid coordinates and generate noise again
 ```
 dens = 32
 shape = (4,4)
@@ -49,7 +52,8 @@ plt.show()
 ```
 ![](media/img_warp.png)
 
-# Add more octaves
+
+# Generate octaves
 ```
 import pylab as plt
 from pythonperlin import perlin
@@ -78,7 +82,10 @@ plt.show()
 ```
 ![](media/img_no_octaves.png) ![](media/img_with_octaves.png)
 
+
 # Generate water caustics
+
+Take absolute value of Perlin noise and apply log-scaled color gradient
 ```
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
@@ -102,7 +109,10 @@ plt.show()
 ```
 ![](media/img_caustics.png)
 
+
 # Generate flower petals
+
+Take 1D Perlin noise as the varying radius along a circle
 ```
 dens = 32
 shape = (8,8)
@@ -126,7 +136,10 @@ plt.show()
 ```
 ![](media/img_flower.png)
 
+
 # Generate vector field
+
+Take Perlin noise as the vector angle at each point of a grid
 ```
 dens = 6
 shape = (3,3)
@@ -145,19 +158,30 @@ plt.show()
 ```
 ![](media/img_vectors.png)
 
+
 # Sound of Perlin noise
+
+Perlin noise sounds nice and less buzzing than white noise
 ```
-import IPython
-import soundfile as sf
+import sounddevice as sd
 
 dens = 32
 shape = (1024,)
 x = perlin(shape, dens=dens, octaves=0)
 
+sd.play(x)
+```
+
+Alternatively, save and play `perlin.wav` audio
+```
+import IPython
+import soundfile as sf
+
 sf.write('perlin.wav', x, 22050)
 IPython.display.Audio('perlin.wav')
 ```
 ![perlin.wav](media/perlin.wav)
+
 
 # Documentation
 
