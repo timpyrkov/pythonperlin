@@ -3,7 +3,6 @@
 
 import numpy as np
 import itertools
-import pyutils
 
 
 def smoothstep(x):
