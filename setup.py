@@ -7,7 +7,7 @@ def read(fname):
 
 setup(
     name="pythonperlin",
-    version="0.0.2",
+    version="0.0.3",
     author="Tim Pyrkov",
     author_email="tim.pyrkov@gmail.com",
     description="Perlin noise in python - seamlessly tile in any dimensions",
