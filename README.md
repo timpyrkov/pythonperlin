@@ -4,7 +4,7 @@
 [![Documentation Status](https://readthedocs.org/projects/pythonperlin/badge/?version=latest)](https://pythonperlin.readthedocs.io/en/latest/?badge=latest)
 
 # PythonPerlin
-## Perlin noise in python -- generative art texture to seamlessly tile in any dimensions
+## Perlin noise in python -- procedural generative art tool to seamlessly tile texture patterns in any dimensions
 #
 
 
@@ -14,7 +14,9 @@ pip install pythonperlin
 ```
 
 More examples and animations can be found at:
+
 https://github.com/timpyrkov/procedural-art/
+
 https://www.instagram.com/timpyrkov/
 
 # Generate Perlin noise
@@ -77,7 +79,7 @@ plt.imshow(x, cmap=plt.get_cmap('Accent_r'))
 plt.axis('off')
 plt.show()
 
-# Generate noise array with 2 additional octaves
+# Generate noise array with 4 additional octaves
 x = perlin(shape, dens=dens, seed=0, octaves=4)
 
 plt.figure(figsize=(6,6))
@@ -159,7 +161,7 @@ for i in range(shape[0]):
     for j in range(shape[1]):
         di = 0.5 * z[i,j].real
         dj = 0.5 * z[i,j].imag
-        color = colors[(di>0) + 2 * (dj > 0)]
+        color = colors[(di > 0) + 2 * (dj > 0)]
         plt.arrow(i, j, di, dj, color=color, width=0.1)
 plt.axis('off')
 plt.show()
