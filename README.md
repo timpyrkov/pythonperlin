@@ -13,6 +13,10 @@
 pip install pythonperlin
 ```
 
+More examples and animations can be found at:
+https://github.com/timpyrkov/procedural-art/
+https://www.instagram.com/timpyrkov/
+
 # Generate Perlin noise
 ```
 import pylab as plt
@@ -31,7 +35,7 @@ x = perlin(shape, dens=dens, seed=0)
 x = np.concatenate([x] * 2, axis=1)
 
 plt.figure(figsize=(12,6))
-plt.imshow(x, cmap=plt.get_cmap('prism'))
+plt.imshow(x, cmap=plt.get_cmap('Accent_r'))
 plt.axis('off')
 plt.show()
 ```
@@ -44,10 +48,10 @@ Add noise to grid coordinates and generate noise again
 ```
 dens = 32
 shape = (4,4)
-x = perlin(shape, dens=dens, seed=0, warp=True)
+x = perlin(shape, dens=dens, seed=0, warp=2)
 
 plt.figure(figsize=(6,6))
-plt.imshow(x, cmap=plt.get_cmap('prism'))
+plt.imshow(x, cmap=plt.get_cmap('Accent_r'))
 plt.axis('off')
 plt.show()
 ```
@@ -69,15 +73,15 @@ dens = 32
 x = perlin(shape, dens=dens, seed=0)
 
 plt.figure(figsize=(6,6))
-plt.imshow(x, cmap=plt.get_cmap('viridis'))
+plt.imshow(x, cmap=plt.get_cmap('Accent_r'))
 plt.axis('off')
 plt.show()
 
 # Generate noise array with 2 additional octaves
-x = perlin(shape, dens=dens, seed=0, octaves=2)
+x = perlin(shape, dens=dens, seed=0, octaves=4)
 
 plt.figure(figsize=(6,6))
-plt.imshow(x, cmap=plt.get_cmap('viridis'))
+plt.imshow(x, cmap=plt.get_cmap('Accent_r'))
 plt.axis('off')
 plt.show()
 ```
@@ -121,17 +125,18 @@ x = perlin(shape, dens=dens)
 
 n = 8
 delta = dens
+color = plt.get_cmap('tab20').colors[::-1]
 plt.figure(figsize=(6,6))
 for i in range(n):
     r = x[delta * i] + 1
     r = np.concatenate([r, (r[0],)])
     phi = 2 * np.pi * np.linspace(0, 1, len(r))
-    scale = 1 - i / n
+    scale = 1 - i / (n + 2)
     z = scale * r * np.exp(1j * phi)
     ax = plt.gca()
     zorder = max([ch.zorder for ch in ax.get_children()])
-    plt.fill(z.real, z.imag, c='dodgerblue', zorder=zorder+1)
-    plt.plot(z.real, z.imag, c='blue', lw=2, zorder=zorder+2)
+    plt.fill(z.real, z.imag, c=color[2*i], zorder=zorder+1)
+    plt.plot(z.real, z.imag, c=color[2*i+1], lw=2, zorder=zorder+2)
 plt.axis('off')
 plt.show()
 ```
@@ -148,12 +153,14 @@ x = perlin(shape, dens=dens)
 z = np.exp(2j * np.pi * x)
 
 shape = z.shape
+colors = plt.get_cmap('Accent').colors
 plt.figure(figsize=(6,6))
 for i in range(shape[0]):
     for j in range(shape[1]):
         di = 0.5 * z[i,j].real
         dj = 0.5 * z[i,j].imag
-        plt.arrow(i, j, di, dj, color='dodgerblue', width=0.1)
+        color = colors[(di>0) + 2 * (dj > 0)]
+        plt.arrow(i, j, di, dj, color=color, width=0.1)
 plt.axis('off')
 plt.show()
 ```

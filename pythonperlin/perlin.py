@@ -9,7 +9,6 @@ def smoothstep(x):
     """
     Smoothstep for interpolation
 
-
     """
     return 3 * np.power(x, 2) - 2 * np.power(x, 3)
 
@@ -17,7 +16,6 @@ def smoothstep(x):
 def smootherstep(x):
     """
     Smootherstep for interpolation
-
 
     """
     return 6 * np.power(x, 5) - 15 * np.power(x, 4) + 10 * np.power(x, 3)
@@ -204,7 +202,7 @@ def calc_grid(grid, grads, smooth=smoothstep):
     return noise
 
 
-def domain_warping(*shape, grid=None, seed=0, smooth=smoothstep):
+def domain_warping(*shape, grid=None, seed=0, warp=0.0, smooth=smoothstep):
     """
     Apply domain warping to grid
 
@@ -216,6 +214,8 @@ def domain_warping(*shape, grid=None, seed=0, smooth=smoothstep):
         Grid float coordinates
     seed : int, default None
         Numpy random seed
+    warp : float, default 0.0
+        Magnitude of domain warping
     smooth : {smoothstep, smootherstep, None}, default smoothstep
         Smooth function or None
 
@@ -229,10 +229,10 @@ def domain_warping(*shape, grid=None, seed=0, smooth=smoothstep):
     vmax = np.max(grid, axis=0)
     for i in range(ndim):
         grads = make_grads(*shape, seed=seed)
-        warp = calc_grid(grid, grads, smooth=smooth)
+        w = calc_grid(grid, grads, smooth=smooth)
         x = grid[:,i]
         vmax = int(x.max()) + 1
-        x = x + warp
+        x = x + warp * w
         mask = x < 0
         x[mask] = x[mask] + vmax
         mask = x >= vmax
@@ -241,7 +241,7 @@ def domain_warping(*shape, grid=None, seed=0, smooth=smoothstep):
     return grid
 
 
-def perlin(*shape, dens=1, seed=None, octaves=0, warp=False, smooth=smoothstep):
+def perlin(*shape, dens=1, octaves=0, seed=None, warp=0.0, smooth=smoothstep):
     """
     Generate Perlin noise
     
@@ -251,12 +251,12 @@ def perlin(*shape, dens=1, seed=None, octaves=0, warp=False, smooth=smoothstep):
         Integers or tuple of integers
     dens : int, default 1 (white noise)
         Number of points between each two gradients along an axis
-    seed : int, default None
-        Numpy random seed
     octaves : int, default 0
         Number of additional octaves
-    warp : bool, default False
-        If True, apply domain warping
+    seed : int, default None
+        Numpy random seed
+    warp : float, default 0.0
+        Magnitude of domain warping
     smooth : {smoothstep, smootherstep, None}, default smoothstep
         Smooth function or None
 
@@ -276,14 +276,15 @@ def perlin(*shape, dens=1, seed=None, octaves=0, warp=False, smooth=smoothstep):
     noise_shape = tuple(dens * s for s in shape)
     grid = make_grid(*shape, dens=dens)
     if warp:
-        grid = domain_warping(*shape, grid=grid, seed=seed, smooth=smooth)
+        grid = domain_warping(*shape, grid=grid, seed=seed, warp=warp, smooth=smooth)
     grads = make_grads(*shape, seed=seed)
     noise = calc_grid(grid, grads, smooth=smooth)
     for i in range(octaves):
         grid = 2 * grid
+        scale = 1 / 2**(i+1)
         shape = tuple(2 * s for s in shape)
         grads = make_grads(*shape, seed=seed)
-        noise += 0.5 * calc_grid(grid, grads, smooth=smooth)
+        noise += scale * calc_grid(grid, grads, smooth=smooth)
     noise = noise.reshape(noise_shape)
     return noise
 
