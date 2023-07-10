@@ -5,6 +5,9 @@
 
 # PythonPerlin
 ## Perlin noise in python -- procedural generative art tool to seamlessly tile texture patterns in any dimensions
+<br>
+
+## In 1997 professor Ken Perlin won an Oscar for Technical Achievement from the Academy of Motion Picture Arts and Sciences for his invention of Perlin noise for the Tron 1982 movie.
 #
 
 
