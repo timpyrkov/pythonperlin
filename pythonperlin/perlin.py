@@ -290,7 +290,7 @@ def perlin(*shape, dens=1, octaves=0, seed=None, warp=0.0, smooth=smoothstep):
     return noise
 
 
-def extend(x, n=2, axis=0, kind='linear', mode='full'):
+def extend2d(x, n=1, axis=None, kind='linear', mode='full'):
     """
     Extend by inserting N new dots between grid nodes along an axis
     
@@ -298,10 +298,10 @@ def extend(x, n=2, axis=0, kind='linear', mode='full'):
     ----------
     x : ndarray
         Array of values
-    n : int, default 2
+    n : int, default 1
         Number of dots to insert between grid nodes along specified axis
-    axis : int, default 0
-        Specifies the axis to extend
+    axis : int or None, default None
+        Specifies the axis to extend (if not specified - extend by both axes)
     kind : str, default 'linear'
         See description of 'kind' parameter for scipy.interpolate.interp1d()
     mode : {'full', 'same'}, default 'full'
@@ -313,15 +313,20 @@ def extend(x, n=2, axis=0, kind='linear', mode='full'):
         Array of extended values
 
     """
-    m = x.shape[axis]
-    l = np.linspace(0, 1, m)
-    f = interp1d(l, x, kind, axis)
-    l = np.linspace(0, 1, (n + 1) * (m - 1) + 1)
-    x_ = f(l)
-    if mode == 'same':
-        slc = [slice(None)] * x.ndim
-        slc[axis] = slice(0, n)
-        x_ = x_[tuple(slc)]
+    assert x.ndim == 2
+    if axis is None:
+        x_ = extend2d(x, n, 0, kind, mode)
+        x_ = extend2d(x_, n, 1, kind, mode)
+    else:
+        m = x.shape[axis]
+        l = np.linspace(0, 1, m)
+        f = interp1d(l, x, kind, axis)
+        l = np.linspace(0, 1, (n + 1) * (m - 1) + 1)
+        x_ = f(l)
+        if mode == 'same':
+            slc = [slice(None)] * x.ndim
+            slc[axis] = slice(0, n)
+            x_ = x_[tuple(slc)]
     return x_
 
 
