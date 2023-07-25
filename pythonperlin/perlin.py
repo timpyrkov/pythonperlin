@@ -325,7 +325,7 @@ def extend2d(x, n=1, axis=None, kind='linear', mode='full'):
         x_ = f(l)
         if mode == 'same':
             slc = [slice(None)] * x.ndim
-            slc[axis] = slice(0, n)
+            slc[axis] = slice(0, m)
             x_ = x_[tuple(slc)]
     return x_
 
