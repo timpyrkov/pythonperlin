@@ -44,7 +44,7 @@ plt.imshow(x, cmap=plt.get_cmap('Accent_r'))
 plt.axis('off')
 plt.show()
 ```
-![](media/img_tile.png)
+![](https://github.com/timpyrkov/pythonperlin/blob/master/media/img_tile.png?raw=true)
 
 
 # Generate domain warping
@@ -60,7 +60,7 @@ plt.imshow(x, cmap=plt.get_cmap('Accent_r'))
 plt.axis('off')
 plt.show()
 ```
-![](media/img_warp.png)
+![](https://github.com/timpyrkov/pythonperlin/blob/master/media/img_warp.png?raw=true)
 
 
 # Generate octaves
@@ -90,7 +90,8 @@ plt.imshow(x, cmap=plt.get_cmap('Accent_r'))
 plt.axis('off')
 plt.show()
 ```
-![](media/img_no_octaves.png) ![](media/img_with_octaves.png)
+![](https://github.com/timpyrkov/pythonperlin/blob/master/media/img_no_octaves.png?raw=true)
+![](https://github.com/timpyrkov/pythonperlin/blob/master/media/img_with_octaves.png?raw=true)
 
 
 # Generate water caustics
@@ -117,7 +118,7 @@ plt.imshow(x, cmap=cmap)
 plt.axis('off')
 plt.show()
 ```
-![](media/img_caustics.png)
+![](https://github.com/timpyrkov/pythonperlin/blob/master/media/img_caustics.png?raw=true)
 
 
 # Generate flower petals
@@ -145,7 +146,7 @@ for i in range(n):
 plt.axis('off')
 plt.show()
 ```
-![](media/img_flower.png)
+![](https://github.com/timpyrkov/pythonperlin/blob/master/media/img_flower.png?raw=true)
 
 
 # Generate vector field
@@ -169,7 +170,7 @@ for i in range(shape[0]):
 plt.axis('off')
 plt.show()
 ```
-![](media/img_vectors.png)
+![](https://github.com/timpyrkov/pythonperlin/blob/master/media/img_vectors.png?raw=true)
 
 
 # Sound of Perlin noise
@@ -193,7 +194,7 @@ import soundfile as sf
 sf.write('perlin.wav', x, 22050)
 IPython.display.Audio('perlin.wav')
 ```
-![perlin.wav](media/perlin.wav)
+![perlin.wav](https://github.com/timpyrkov/pythonperlin/blob/master/media/perlin.wav)
 
 
 # Documentation
