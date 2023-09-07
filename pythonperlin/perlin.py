@@ -268,7 +268,7 @@ def perlin(*shape, dens=1, octaves=0, seed=None, warp=0.0, smooth=smoothstep):
 
     Example
     -------
-    >>> from perlin import perlin
+    >>> from pythonperlin import perlin
     >>> shape = (32,32)
     >>> x = perlin(shape, dens=8)
 
