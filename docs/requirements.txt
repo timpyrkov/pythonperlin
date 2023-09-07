@@ -4,3 +4,6 @@ numpy
 IPython
 soundfile
 sounddevice
+pythonperlin
+sphinx-rtd-theme
+matplotlib
