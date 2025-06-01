@@ -6,10 +6,10 @@
 
 <h1><img align="center" height="30" src="https://github.com/timpyrkov/pythonperlin/blob/master/docs/media/logo.png?raw=true"> PythonPerlin</h1>
 
-<p align="left">
-  <img src="https://github.com/timpyrkov/pythonperlin/blob/master/docs/media/logo.png?raw=true" alt="PythonPerlin logo" height="48" style="vertical-align: middle; margin-right: 10px;">
+<h1><p align="left">
+  <img src="https://github.com/timpyrkov/pythonperlin/blob/master/docs/media/logo.png?raw=true" alt="PythonPerlin logo" height="30" style="vertical-align: middle; margin-right: 10px;">
   <span style="font-size:2.5em; vertical-align: middle;"><b>PythonPerlin</b></span>
-</p>
+</p></h1>
 
 #
 
