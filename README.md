@@ -6,6 +6,13 @@
 
 <h1><img align="center" height="30" src="https://github.com/timpyrkov/pythonperlin/blob/master/docs/media/logo.png?raw=true"> PythonPerlin</h1>
 
+<p align="left">
+  <img src="https://github.com/timpyrkov/pythonperlin/blob/master/docs/media/logo.png?raw=true" alt="PythonPerlin logo" height="48" style="vertical-align: middle; margin-right: 10px;">
+  <span style="font-size:2.5em; vertical-align: middle;"><b>PythonPerlin</b></span>
+</p>
+
+#
+
 Perlin noise is a type of gradient noise developed by professor <b>Ken Perlin</b> in 1983 at the Department of Computer Science at New York University (NYU).
 
 He began working on the algorithm while contributing to Disney’s 1982 science fiction film <b>"Tron"</b>, which starred Bruce Boxleitner and Peter Jurasik — both of whom later appeared in the sci-fi TV series <b>"Babylon 5"</b> (1993–1998).
