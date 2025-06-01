@@ -4,7 +4,7 @@
 [![Documentation Status](https://readthedocs.org/projects/pythonperlin/badge/?version=latest)](https://pythonperlin.readthedocs.io/en/latest/?badge=latest)
 
 
-<h1><img align="center" height="30" src="https://github.com/timpyrkov/pythonperlin/blob/master/docs/media/logo.png?raw=true"> PythonPerlin</h1>
+<h1><img align="center" height="60" src="https://github.com/timpyrkov/pythonperlin/blob/master/docs/media/logo.png?raw=true"> PythonPerlin</h1>
 
 Perlin noise is a type of gradient noise developed by professor <b>Ken Perlin</b> in 1983 at the Department of Computer Science at New York University (NYU).
 
