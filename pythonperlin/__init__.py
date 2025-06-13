@@ -1,20 +1,16 @@
 # -*- coding: utf-8 -*-
 
 from .perlin import *
-from .surface import SurfaceGrid
-from .playground import (
-    make_triangular_grid,
-)
+from .worley import *
+from .surface import *
 
-__all__ = [
-    # From perlin.py
-    'perlin',
-    'extend2d',
-    # From grid.py
-    'SurfaceGrid',
-    # From playground.py
-    'make_triangular_grid',
-]
+# __all__ = [
+#     # From perlin.py
+#     'perlin',
+#     'extend2d',
+#     'SurfaceGrid',
+#     'show_3D',
+# ]
 
 try:
     from pkg_resources import get_distribution

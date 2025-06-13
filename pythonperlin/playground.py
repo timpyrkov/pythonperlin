@@ -1,328 +1,243 @@
-#!/usr/bin/env python
-# -*- coding: utf8 -*-
-
 import numpy as np
 import matplotlib.pyplot as plt
-from typing import Tuple, List, Optional, Dict, Any, Literal, Union
-from .perlin import _shape_and_dens_to_tuples
+from worley import worley, calc_worley
+from matplotlib import colormaps
+from scipy.spatial import Voronoi
+import io
 
+def cobblestone_cmap(shape=(6,4), dens=64, seed=None):
 
-def _tilt_axis(x, tilt: Literal["forward", "backward", "inward", "outward"] = 'forward'):
-    if x.size == 0:
-        return x
-    if tilt in ['forward', 'inward']:
-        x[::2] += 0.5
-    if tilt in ['backward', 'outward']:
-        x[1::2] += 0.5
-    if tilt == 'inward':
-        x[::2, -1] = np.nan
-    if tilt == 'outward':
-        x[1::2, -1] = np.nan
-    return x
+    dist, centers = worley(shape, dens, seed)
 
+    # Difference between the smallest and second smallest distance
+    dist = dist[1] - dist[0]
 
-def _reverse_tilt(tilt: Literal["forward", "backward", "inward", "outward"]):
-    if tilt == "forward":
-        tilt = "backward"
-    elif tilt == "backward":
-        tilt = "forward"
-    elif tilt == "inward":
-        tilt = "outward"
-    elif tilt == "outward":
-        tilt = "inward"
-    return tilt
-
-
-
-def make_triangular_grid(
-    shape: Union[int, Tuple[int, ...]],
-    dens: Union[int, Tuple[int, ...]] = 1,
-    center: Optional[Tuple[int, int]] = None,
-    stride: float = 1.0,
-    padding: bool = False,
-    base: Literal["horizontal", "vertical"] = 'horizontal',
-    tilt: Literal["forward", "backward", "inward", "outward"] = 'inward',
-) -> np.ndarray:
-    """
-    Make a triangular grid.
-
-    Parameters
-    ----------
-    shape : Union[int, Tuple[int, ...]]
-        The shape of the grid.
-    dens : Union[int, Tuple[int, ...]], default 1
-        The density of the grid.
-    center : Optional[Tuple[int, int]], default None
-        The center of the grid.
-    stride : float, default 1.0
-        The stride of the grid.
-    padding : bool, default False
-        If True, pad the grid with one row and one column in each direction.
-    base : Literal["horizontal", "vertical"], default "horizontal"
-        The base of the grid.
-    tilt : Literal["forward", "backward", "inward", "outward"], default "inward"
-        The tilt of the grid.
-    """
-    # Convert shape and dens to tuples
-    shape, dens = _shape_and_dens_to_tuples(shape, dens=dens)
-    if len(shape) != len(dens) or len(shape) != 2:
-        raise ValueError("shape and dens must have the same number of elements and must be 2D")
-    
-    # Calculate grid center and bounding box
-    size = tuple(s * d for s, d in zip(shape, dens))
-    x0 = 0.5 * size[0] * stride
-    y0 = 0.5 * size[1] * stride
-    if base == 'horizontal':
-        y0 *= np.sqrt(3) / 2
-        if tilt in ['forward', 'backward']:
-            x0 += 0.25 * stride
-    elif base == 'vertical':
-        x0 *= np.sqrt(3) / 2
-        if tilt in ['forward', 'backward']:
-            y0 += 0.25 * stride
-
-    # Assign center if not provided
-    if center is None:
-        center = (x0, y0)
-
-    # Assign bounding box
-    box = ((center[0] - x0, center[1] - y0), (center[0] + x0, center[1] + y0))
-    
-    # Calculate the size of the grid
-    size = tuple((s + 2 * int(padding)) * d for s, d in zip(shape, dens))
-
-    # Create the grid
-    x, y = [np.linspace(0, s, s + 1) for s in size]
-    x, y = np.meshgrid(x, y)
-
-    # Pad the grid
-    if padding:
-        x -= dens[0]
-        y -= dens[1]
-        if base == 'horizontal' and dens[1] % 2 == 1:
-            tilt = _reverse_tilt(tilt)
-        if base == 'vertical' and dens[0] % 2 == 1:
-            tilt = _reverse_tilt(tilt)
-
-    if base == 'horizontal':
-        y *= np.sqrt(3) / 2
-        x = _tilt_axis(x, tilt)
-        y[np.isnan(x)] = np.nan
-    elif base == 'vertical':
-        x *= np.sqrt(3) / 2
-        y = _tilt_axis(y.T, tilt).T
-        x[np.isnan(y)] = np.nan
-
-    # Scale and shift the grid
-    x = x * stride + center[0]
-    y = y * stride + center[1]
-
-    # Create indices of the grid faces
-    face_idxs = []
-    for i in range(x.shape[0] - 1):
-        for j in range(x.shape[1] - 1):
-            level = i + int(tilt in ['backward', 'outward'])
-            if base == 'vertical':
-                level = j + int(tilt in ['backward', 'outward'])
-            if level % 2 == 0:
-                if np.isfinite(x[i+1, j+1]):
-                    face_idxs.append([(i, j), (i+1, j), (i+1, j+1)])
-                    if np.isfinite(x[i, j+1]):
-                        face_idxs.append([(i, j), (i+1, j+1), (i, j+1)])
-            else:
-                if np.isfinite(x[i, j+1]):
-                    face_idxs.append([(i, j), (i+1, j), (i, j+1)])
-                    if np.isfinite(x[i+1, j+1]):
-                        face_idxs.append([(i+1, j), (i+1, j+1), (i, j+1)])
-
-    # Create the coordinates of the grid faces
-    face_coords = []
-    for i in face_idxs:
-        face_coords.append([(x[i[0][0], i[0][1]], y[i[0][0], i[0][1]]),
-                            (x[i[1][0], i[1][1]], y[i[1][0], i[1][1]]),
-                            (x[i[2][0], i[2][1]], y[i[2][0], i[2][1]])])
-    return face_coords
-
-
-def find_triangular_grid_shape(
-    size: Tuple[int, int],
-    nrows: Optional[int] = None,
-    ncols: Optional[int] = None,
-    base: Literal["horizontal", "vertical"] = 'horizontal',
-) -> Tuple[int, int]:
-    """
-    Find triangular grid shapes that best fit the canvas size.
-    Provide nrows to find ncols, or provide ncols to find nrows.
-
-    Parameters
-    ----------
-    size : Tuple[int, int]
-        The size of the canvas.
-    nrows : int, default None
-        The number of rows in the grid.
-    ncols : int, default None
-        The number of columns in the grid.
-    base : Literal["horizontal", "vertical"], default "horizontal"
-        The base of the grid.
-
-    Raises
-    ------
-    ValueError
-        If the canvas size is too small or if both nrows and ncols are provided.
-    """
-    width, height = size
-
-    if width < 15 or height < 15:
-        raise ValueError("Canvas size too small, must be at least 15x15")
-    
-    if nrows is None and ncols is None:
-        raise ValueError("Either nrows or ncols must be provided")
-    
-    if nrows is not None and ncols is not None:
-        raise ValueError("Either nrows or ncols must be provided, not both")
-    
-    if base == 'horizontal':
-        if ncols is not None:
-            dx = width / ncols
-            dy = dx * np.sqrt(3) / 2
-            nrows = int(height / dy)
-        ny = 2 * int(nrows / 2)
-        dy = int(height / ny)
-        dx = int(dy * 2 / np.sqrt(3))
-        nx = int(width / dx)
-
-        for i in range(1,4):
-            for j in range(1,4):
-                if nx % i == 0 and ny % j == 0:
-                    shape = f'shape=({nx // i}, {ny // j})'
-                    dens = f'dens=({i}, {j})'
-                    stride = f'stride={dx}'
-                    center = f'center=({width // 2}, {height // 2})'
-                    print(f'{shape}, {dens}, {stride}, {center}, base="{base}"')
-        
-    elif base == 'vertical':
-        if nrows is not None:
-            dy = height / nrows
-            dx = dy * np.sqrt(3) / 2
-            ncols = int(width / dx)
-        nx = 2 * int(ncols / 2)
-        dx = int(width / nx)
-        dy = int(dx * 2 / np.sqrt(3))
-        ny = int(height / dy)
-
-        for i in range(1,4):
-            for j in range(1,4):
-                if nx % i == 0 and ny % j == 0:
-                    shape = f'shape=({nx // i}, {ny // j})'
-                    dens = f'dens=({i}, {j})'
-                    stride = f'stride={dy}'
-                    center = f'center=({width // 2}, {height // 2})'
-                    print(f'{shape}, {dens}, {stride}, {center}, base="{base}"')
+    plt.figure(figsize=(12,6))
+    plt.imshow(dist.T, cmap=plt.get_cmap("copper"))
+    plt.axis("off")
+    plt.show()
 
     return
 
 
 
 
-
-
-
-
-
-
-
-
-def make_hexagonal_grid(
-    shape: Union[int, Tuple[int, ...]],
-    dens: Union[int, Tuple[int, ...]] = 1,
-    center: Optional[Tuple[int, int]] = None,
-    stride: float = 1.0,
-    padding: bool = False,
-    base: Literal["horizontal", "vertical"] = 'horizontal',
-    tilt: Literal["forward", "backward", "inward", "outward"] = 'inward',
-) -> np.ndarray:
+def cobblestone_random_colormap(dist, dist_idxs, cmap_name="copper", seed=None):
     """
-    Make a hexagonal grid.
+    Assign each cobblestone (region) a random color from the colormap,
+    and use the distance as the alpha channel.
+    """
+    if seed is not None:
+        np.random.seed(seed)
+    idx_map = dist_idxs[0]
+    unique_idxs = np.unique(idx_map)
+    n_colors = len(unique_idxs)
+    # Sample random colors from the colormap
+    cmap = cm.get_cmap(cmap_name)
+    color_vals = np.random.rand(n_colors)
+    colors = cmap(color_vals)[:, :3]  # RGB only
+    # Map each unique index to a color
+    idx_to_color = {idx: colors[i] for i, idx in enumerate(unique_idxs)}
+    # Build the RGB image
+    rgb_img = np.zeros(idx_map.shape + (3,), dtype=float)
+    for idx, color in idx_to_color.items():
+        rgb_img[idx_map == idx] = color
+    # Normalize dist for alpha
+    alpha = (dist[0] - dist[0].min()) / (dist[0].ptp() + 1e-8)
+    # Stack RGB and alpha
+    rgba_img = np.concatenate([rgb_img, alpha[..., None]], axis=-1)
+    return rgba_img
+
+# Example usage:
+if __name__ == "__main__":
+    import pythonperlin as pp
+    shape = (64, 48)
+    dist, dist_idxs, centers, center_idxs = pp.calc_worley(shape, dens=8, seed=42)
+    rgba_img = cobblestone_random_colormap(dist, dist_idxs, cmap_name="copper", seed=42)
+
+    bg = cm.get_cmap("copper")[0]
+    bg_img = np.ones(rgba_img.shape) * bg
+    rgba_img = np.where(rgba_img == 0, bg_img, rgba_img)
+
+    plt.imshow(rgba_img)
+    plt.axis('off')
+    plt.show()
+
+def worley_starfield(shape=(20, 10), seed=None, r_disp=0.5, min_size=20, max_size=200, min_brightness=0.5, max_brightness=1.0):
+    """
+    Generate a starfield using Worley noise centers as star positions.
 
     Parameters
     ----------
-    shape : Union[int, Tuple[int, ...]]
-        The shape of the grid.
-    dens : Union[int, Tuple[int, ...]], default 1
-        The density of the grid.
-    center : Optional[Tuple[int, int]], default None
-        The center of the grid.
-    stride : float, default 1.0
-        The stride of the grid.
-    padding : bool, default False
-        If True, pad the grid with one row and one column in each direction.
-    base : Literal["horizontal", "vertical"], default "horizontal"
-        The base of the grid.
-    tilt : Literal["forward", "backward", "inward", "outward"], default "inward"
-        The tilt of the grid.
+    shape : tuple
+        Shape of the grid for star centers.
+    seed : int or None
+        Random seed for reproducibility.
+    r_disp : float
+        Maximum random displacement from the center (in grid units).
+    min_size, max_size : float
+        Range of star marker sizes.
+    min_brightness, max_brightness : float
+        Range of star brightness (for color/alpha).
+
+    Returns
+    -------
+    None (shows a matplotlib plot)
     """
-    # Convert shape and dens to tuples
-    shape, dens = _shape_and_dens_to_tuples(shape, dens=dens)
-    if len(shape) != len(dens) or len(shape) != 2:
-        raise ValueError("shape and dens must have the same number of elements and must be 2D")
+    if seed is not None:
+        np.random.seed(seed)
+
+    # Get centers from Worley noise with dens=1
+    _, _, centers, _ = calc_worley(shape, dens=1, seed=seed)
+    x, y = centers[0].flatten(), centers[1].flatten()
+    dx = x - x.astype(int)
+    dy = y - y.astype(int)
+    # Convert (dx, dy) to polar coordinates
+    r = np.sqrt(dx**2 + dy**2)
+    phi = np.arctan2(dy, dx)
+    # Convert (r, phi) to Cartesian coordinates
+    x = r * np.cos(phi)
+    y = r * np.sin(phi)
+
+    # Add random displacement for natural look
+    phi = np.random.uniform(0, 2 * np.pi, x.shape)
+    r = np.random.uniform(0, r_disp, x.shape)
+    x = x + r * np.cos(phi)
+    y = y + r * np.sin(phi)
+    # Random star sizes and brightness
+    sizes = np.random.uniform(min_size, max_size, x.shape)
+    brightness = np.random.uniform(min_brightness, max_brightness, x.shape)
+    colors = np.ones((len(x), 4))
+    colors[:, :3] *= brightness[:, None]  # white stars, scaled by brightness
+    colors[:, 3] = brightness  # alpha
+    # Plot
+    plt.figure(figsize=(12, 6), facecolor="black")
+    plt.scatter(x, y, s=sizes, c=colors)
+    plt.axis("off")
+    plt.xlim(0, shape[0])
+    plt.ylim(0, shape[1])
+    plt.show()
+
+def plot_voronoi_tessellation(shape=(6,4), seed=None, show_plot=True):
+    """
+    Create a Voronoi tessellation plot using Worley noise centers.
     
-    # Calculate the size of the grid
-    size = tuple((s + 2 * int(padding)) * d for s, d in zip(shape, dens))
+    Parameters
+    ----------
+    shape : tuple
+        Shape of the grid for Voronoi centers.
+    seed : int or None
+        Random seed for reproducibility.
+    show_plot : bool, default True
+        Whether to display the plot immediately.
+        
+    Returns
+    -------
+    img_array : ndarray
+        RGB image array of the Voronoi tessellation
+    """
+    # Get centers and indices from Worley noise
+    _, _, centers, idxs = calc_worley(shape, dens=1, padded=True, seed=seed)
+    
+    # Reshape centers and idxs to (npoints, ...)-shape
+    points = centers.reshape(2,-1).T
+    idxs = idxs.flatten()
+    
+    # Generate Voronoi diagram
+    vor = Voronoi(points)
+    vert = vor.vertices
+    edge = vor.ridge_vertices
+    face = vor.regions
+    
+    # Create figure
+    plt.figure(figsize=(12,6), facecolor="grey")
+    
+    # Fill faces with random colors
+    rand = np.random.uniform(0.2, 0.8, len(face))
+    color = plt.get_cmap("Greys")(rand)
+    for i, f in enumerate(face):
+        if len(f) and min(f) > 0:
+            v = vert[f]
+            plt.fill(v[:,0], v[:,1], c=color[i])
+    
+    # Draw edges
+    for e in edge:
+        if min(e) > 0:
+            v = vert[e]
+            plt.plot(v[:,0], v[:,1], c="black", lw=12)
+    
+    # Plot centers
+    plt.scatter(*centers, c="black", s=200)
+    
+    # Set limits to hide periodic boundary padding points
+    plt.xlim(0, shape[0])
+    plt.ylim(0, shape[1])
+    plt.axis("off")
+    
+    # Remove all axes and margins
+    fig = plt.gcf()
+    ax = plt.gca()
+    ax.set_position([0, 0, 1, 1])  # Make axes fill the figure
+    plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
+    plt.axis('off')
+    plt.margins(0, 0)
+    ax.set_xticks([])
+    ax.set_yticks([])
 
-    # Create the grid
-    x, y = [np.linspace(0, s, s + 1) for s in size]
-    x, y = np.meshgrid(x, y)
+    # Save to a buffer with tight bounding box and no padding
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png', bbox_inches='tight', pad_inches=0, transparent=False)
+    buf.seek(0)
+    import matplotlib.image as mpimg
+    img = mpimg.imread(buf)
+    buf.close()
 
-    # Pad the grid
-    if padding:
-        x -= dens[0]
-        y -= dens[1]
-        if base == 'horizontal' and dens[1] % 2 == 1:
-            tilt = _reverse_tilt(tilt)
-        if base == 'vertical' and dens[0] % 2 == 1:
-            tilt = _reverse_tilt(tilt)
+    if show_plot:
+        plt.show()
+    else:
+        plt.close()
 
+    # If the image has an alpha channel, drop it for tiling
+    if img.shape[2] == 4:
+        img = img[:, :, :3]
 
-    if base == 'horizontal':
-        y *= np.sqrt(3) / 2
-        x = _tilt_axis(x, tilt)
-        y[np.isnan(x)] = np.nan
-    elif base == 'vertical':
-        x *= np.sqrt(3) / 2
-        y = _tilt_axis(y.T, tilt).T
-        x[np.isnan(y)] = np.nan
+    return img
 
-    # Scale and shift the grid
-    x *= stride
-    y *= stride
-    if center is not None:
-        x += center[0]
-        y += center[1]
+def plot_voronoi_tessellation_tile(shape=(6,4), seed=None):
+    """
+    Create a tiled Voronoi tessellation plot (2x2 grid).
+    
+    Parameters
+    ----------
+    shape : tuple
+        Shape of the grid for Voronoi centers.
+    seed : int or None
+        Random seed for reproducibility.
+        
+    Returns
+    -------
+    None (shows a matplotlib plot)
+    """
+    # Generate single tessellation
+    img = plot_voronoi_tessellation(shape, seed, show_plot=False)
+    
+    # Create 2x2 tiled image
+    tiled = np.vstack([
+        np.hstack([img, img]),
+        np.hstack([img, img])
+    ])
+    
+    # Display tiled image
+    plt.figure(figsize=(12,12))
+    plt.imshow(tiled)
+    plt.axis('off')
+    plt.show()
 
-    # Create indices of the grid faces
-    face_idxs = []
-    for i in range(x.shape[0] - 1):
-        for j in range(x.shape[1] - 1):
-            level = i + int(tilt in ['backward', 'outward'])
-            if base == 'vertical':
-                level = j + int(tilt in ['backward', 'outward'])
-            if level % 2 == 0:
-                if np.isfinite(x[i+1, j+1]):
-                    face_idxs.append([(i, j), (i+1, j), (i+1, j+1)])
-                    if np.isfinite(x[i, j+1]):
-                        face_idxs.append([(i, j), (i+1, j+1), (i, j+1)])
-            else:
-                if np.isfinite(x[i, j+1]):
-                    face_idxs.append([(i, j), (i+1, j), (i, j+1)])
-                    if np.isfinite(x[i+1, j+1]):
-                        face_idxs.append([(i+1, j), (i+1, j+1), (i, j+1)])
-
-    # Create the coordinates of the grid faces
-    face_coords = []
-    for i in face_idxs:
-        face_coords.append([(x[i[0][0], i[0][1]], y[i[0][0], i[0][1]]),
-                            (x[i[1][0], i[1][1]], y[i[1][0], i[1][1]]),
-                            (x[i[2][0], i[2][1]], y[i[2][0], i[2][1]])])
-    return face_coords
-
+# Example usage:
+if __name__ == "__main__":
+    # Example of single tessellation
+    plot_voronoi_tessellation(shape=(6,4), seed=0)
+    
+    # Example of tiled tessellation
+    plot_voronoi_tessellation_tile(shape=(6,4), seed=0)
 

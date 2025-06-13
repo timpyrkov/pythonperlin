@@ -49,14 +49,14 @@ def _shape_and_dens_to_tuples(
         dens: Union[int, Tuple[int, ...]] = 1, 
     ) -> Tuple[Tuple[int, ...], Tuple[int, ...]]:
     """
-    Get shape and dens as tuples. Check if the shape and dens are valid.
+    Convert shape and dens to tuples. Check if the shape and dens are valid.
 
     Parameters
     ----------
     *shape : Union[int, Tuple[int, ...]]
-        Shape of the noise field. Can be provided as separate integers or a tuple.
+        Shape of the noise grid.
     dens : Union[int, Tuple[int, ...]], default 1
-        Number of points between each two gradients along an axis   
+        Number of interpolation points between grid nodes along each axis
 
     Returns
     -------
@@ -66,20 +66,16 @@ def _shape_and_dens_to_tuples(
         Dens as tuple
     """
     shape = tuple(shape[0]) if isinstance(shape[0], (tuple, list)) else shape
-    if not isinstance(shape, tuple):
-        raise ValueError('shape must be a tuple')
     if any(s < 1 for s in shape):
-        raise ValueError('shape must be 1 or greater')
+        raise ValueError("shape must be 1 or greater")
     if isinstance(dens, int):
         if dens < 1:
-            raise ValueError('dens must be 1 or greater')
+            raise ValueError("dens must be 1 or greater")
         dens = tuple([dens] * len(shape))
-    if not isinstance(dens, tuple):
-        raise ValueError('dens must be int or tuple')
     if len(dens) != len(shape):
-        raise ValueError('Shape and dens must have the same number of elements')
+        raise ValueError("Shape and dens must have the same number of elements")
     if any(d < 1 for d in dens):
-        raise ValueError('dens must be 1 or greater')
+        raise ValueError("dens must be 1 or greater")
     return shape, dens
 
 
@@ -247,7 +243,7 @@ def _make_grid(*shape: Union[int, Tuple[int, ...]], dens: Union[int, Tuple[int, 
     shape, dens = _shape_and_dens_to_tuples(*shape, dens=dens)
     grid = [np.linspace(0, s, s * d + 1)[:-1] for s, d in zip(shape, dens)]
     if offset:
-        grid = [g + 0.5 * g[1] for g in grid]
+        grid = [g + 0.5 if len(g) == 1 else g + 0.5 * g[1] for g in grid]
     grid = list(itertools.product(*grid))
     grid = np.array(grid)
     return grid
@@ -400,7 +396,7 @@ def _domain_warping(*shape: Union[int, Tuple[int, ...]], grid: Optional[np.ndarr
     vmax = np.max(grid, axis=0)
     for i in range(ndim):
         grads = _make_grads(*shape, seed=seed)
-        w = calc_grid(grid, grads, smooth=smooth)
+        w = _calc_grid(grid, grads, smooth=smooth)
         x = grid[:,i]
         vmax = int(x.max()) + 1
         x = x + warp * w
@@ -420,9 +416,9 @@ def perlin(*shape: Union[int, Tuple[int, ...]], dens: Union[int, Tuple[int, ...]
     Parameters
     ----------
     *shape : Union[int, Tuple[int, ...]]
-        Shape of the noise field. Can be provided as separate integers or a tuple.
+        Shape of the noise grid.
     dens : Union[int, Tuple[int, ...]], default 1
-        Number of points between each two gradients along an axis
+        Number of interpolation points between grid nodes along each axis
     octaves : int, default 0
         Number of additional octaves to add for more detail
     seed : Optional[int], default None
@@ -437,11 +433,14 @@ def perlin(*shape: Union[int, Tuple[int, ...]], dens: Union[int, Tuple[int, ...]
     np.ndarray
         Noise grid with the specified shape
         
-    Examples
-    --------
-    >>> from pythonperlin import perlin
+    Example
+    -------
+    >>> import pylab as plt
+    >>> import pythonperlin as pp
     >>> shape = (32, 32)
-    >>> x = perlin(shape, dens=8)
+    >>> noise = pp.perlin(shape, dens=8)
+    >>> plt.imshow(noise.T)
+    >>> plt.show()
     """
     # Get shape and dens tuples
     shape, dens = _shape_and_dens_to_tuples(*shape, dens=dens)

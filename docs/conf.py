@@ -50,8 +50,10 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # a list of builtin themes.
 #
 html_theme = 'sphinx_rtd_theme'
+html_logo = 'img/logo.png'
 pygments_style = 'sphinx'
 html_theme_options = {
+    'logo_only': True,
     'display_version': False,
 }
 

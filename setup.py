@@ -25,7 +25,7 @@ setup(
     python_requires=">=3.6",
     include_package_data=True,
     install_requires=[
-        "numpy>=1.20.0",
+        "numpy>=1.17.0",
         "scipy>=1.7.0",
         "matplotlib>=3.4.0",
     ],
