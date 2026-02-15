@@ -13,7 +13,7 @@ from .surface import *
 # ]
 
 try:
-    from pkg_resources import get_distribution
-    __version__ = get_distribution('pythonperlin').version
+    from importlib.metadata import version
+    __version__ = version('pythonperlin')
 except Exception:
     __version__ = '0.1.0'
